@@ -1,5 +1,7 @@
 from django.http import HttpResponse, HttpResponseNotFound, Http404
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
+
+from women.forms import *
 from women.models import *
 
 menu = [{'title': 'О сайте', 'url_name': 'about'},
@@ -26,7 +28,18 @@ def about(request):
 
 
 def addpage(request):
-    return HttpResponse('Добавить статью')
+    if request.method == 'POST':
+        form = AddPostForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                form.save()
+                # Women.objects.create(**form.cleaned_data)  Если форма не привязана к модели
+                return redirect('home')
+            except:
+                form.add_error(None, 'Ошибка добавления поста')
+    else:
+        form = AddPostForm()
+    return render(request, 'women/addpage.html', {'form': form, 'title': 'Добавление статьи', 'menu': menu})
 
 
 def contact(request):
